@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Ashu's Real-time Communication</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(52, 231, 228, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 71, 133, 0.1) 0%, transparent 50%);
+            animation: backgroundShift 20s ease infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-20px, 20px) scale(1.1); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Username Page Styles */
+        #username-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .username-page-container {
+            background: rgba(20, 20, 40, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(120, 119, 198, 0.3);
+            border-radius: 24px;
+            padding: 60px 50px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 60px rgba(120, 119, 198, 0.2);
+            animation: fadeInUp 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .username-page-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(120, 119, 198, 0.05), 
+                transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #7877c6 0%, #34e7e4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 16px;
+            background: rgba(30, 30, 60, 0.6);
+            border: 2px solid rgba(120, 119, 198, 0.3);
+            border-radius: 12px;
+            color: #e0e0e0;
+            outline: none;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-control::placeholder {
+            color: rgba(224, 224, 224, 0.5);
+        }
+
+        .form-control:focus {
+            border-color: #7877c6;
+            background: rgba(30, 30, 60, 0.8);
+            box-shadow: 0 0 20px rgba(120, 119, 198, 0.3);
+            transform: translateY(-2px);
+        }
+
+        button {
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .username-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #7877c6 0%, #5a4fb8 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(120, 119, 198, 0.4);
+        }
+
+        .username-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(120, 119, 198, 0.6);
+        }
+
+        .username-submit:active {
+            transform: translateY(-1px);
+        }
+
+        /* Chat Page Styles */
+        #chat-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-container {
+            background: rgba(20, 20, 40, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(120, 119, 198, 0.3);
+            border-radius: 24px;
+            max-width: 800px;
+            width: 100%;
+            height: 85vh;
+            max-height: 700px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 60px rgba(120, 119, 198, 0.2);
+            animation: fadeInUp 0.8s ease;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, rgba(120, 119, 198, 0.3) 0%, rgba(52, 231, 228, 0.2) 100%);
+            padding: 24px 30px;
+            border-bottom: 1px solid rgba(120, 119, 198, 0.3);
+            border-radius: 24px 24px 0 0;
+        }
+
+        .chat-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7877c6 0%, #34e7e4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .connecting {
+            text-align: center;
+            padding: 20px;
+            color: #34e7e4;
+            font-size: 14px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #messageArea {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #messageArea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #messageArea::-webkit-scrollbar-track {
+            background: rgba(30, 30, 60, 0.3);
+            border-radius: 10px;
+        }
+
+        #messageArea::-webkit-scrollbar-thumb {
+            background: rgba(120, 119, 198, 0.5);
+            border-radius: 10px;
+        }
+
+        #messageArea::-webkit-scrollbar-thumb:hover {
+            background: rgba(120, 119, 198, 0.7);
+        }
+
+        #messageArea li {
+            padding: 14px 18px;
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid rgba(120, 119, 198, 0.2);
+            border-radius: 16px;
+            animation: messageSlide 0.3s ease;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        #messageArea li.event-message {
+            background: linear-gradient(135deg, rgba(52, 231, 228, 0.1) 0%, rgba(120, 119, 198, 0.1) 100%);
+            border-color: rgba(52, 231, 228, 0.3);
+            color: #34e7e4;
+            text-align: center;
+            margin: 8px auto;
+            font-size: 14px;
+            max-width: 60%;
+        }
+
+        #messageForm {
+            padding: 20px 30px;
+            border-top: 1px solid rgba(120, 119, 198, 0.3);
+            background: rgba(20, 20, 40, 0.5);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-group .form-control {
+            flex: 1;
+            margin: 0;
+        }
+
+        .primary {
+            background: linear-gradient(135deg, #34e7e4 0%, #2ab5b3 100%);
+            color: #0a0a0f;
+            font-weight: 700;
+            padding: 16px 28px;
+            box-shadow: 0 4px 20px rgba(52, 231, 228, 0.4);
+        }
+
+        .primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(52, 231, 228, 0.6);
+        }
+
+        .primary:active {
+            transform: translateY(-1px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .username-page-container {
+                padding: 40px 30px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .chat-container {
+                height: 90vh;
+                border-radius: 16px;
+            }
+
+            .chat-header {
+                padding: 20px;
+            }
+
+            .chat-header h2 {
+                font-size: 20px;
+            }
+
+            #messageArea {
+                padding: 15px 20px;
+            }
+
+            #messageForm {
+                padding: 15px 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .primary {
+                width: 100%;
+            }
+        }
+
+        /* Additional animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="username-page">
+    <div class="username-page-container">
+        <h1 class="title">Enter the Quantum Realm</h1>
+        <form id="usernameForm" name="usernameForm">
+            <div class="form-group">
+                <input type="text" id="name" placeholder="Choose your username" autocomplete="off" class="form-control" />
+            </div>
+            <div class="form-group">
+                <button type="submit" class="username-submit">Connect to Network</button>
+            </div>
+        </form>
+    </div>	
+</div>
+
+<div id="chat-page" class="hidden">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>⚡ Quantum Chat Network</h2>
+        </div>
+        <div class="connecting">
+            Establishing secure connection...
+        </div>
+        <ul id="messageArea">
+        </ul>
+        <form id="messageForm" name="messageForm">
+            <div class="form-group">
+                <div class="input-group clearfix">
+                    <input type="text" id="message" placeholder="Type your message..." autocomplete="off" class="form-control"/>
+                    <button type="submit" class="primary">Send</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>
